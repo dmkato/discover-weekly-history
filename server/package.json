@@ -1,5 +1,5 @@
 {
-  "name": "save-discover-weekly",
+  "name": "spotify-discover-weekly-history",
   "version": "1.0.0",
   "description": "Save each weeks discover weekly to a playlist",
   "main": "index.js",
