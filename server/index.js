@@ -1,5 +1,5 @@
 const spotify = require('./js/spotify.js')
-const playlist = require('./js/playlist.js')
+const createPlaylist = require('./js/createPlaylist.js')
 const express = require('express')
 const querystring = require('querystring')
 const app = express()
@@ -12,7 +12,7 @@ app.get('/login', (req, res) => {
 app.get('/done', (req, res) => {
     spotify.getUserCreds(req.query.code)
     .then(user => {
-        playlist.setup(user)
+        createPlaylist(user)
         res.redirect(`http://localhost:3000/loggedIn/#${user.id}`)
     })
 })

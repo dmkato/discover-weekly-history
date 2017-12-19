@@ -3,7 +3,6 @@ const rp = require('request-promise')
 const querystring = require('querystring')
 const btoa = require('btoa')
 const redirect_uri = 'http://localhost:3001/done'
-const fs = require('fs')
 
 const loginScreenUrl = () => {
     return 'https://accounts.spotify.com/en/authorize?' +
@@ -39,42 +38,102 @@ const authorizeUser = (authCode) => {
 const getUserInfo = (tokens) => {
     return rp('https://api.spotify.com/v1/me', {
         headers: {
-            Authorization: `Bearer ${tokens.access_token}`
-        }
+            'Authorization': `Bearer ${tokens.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        json: true
     })
-    .then((user) => {
-        return {
-            accessToken: tokens.access_token,
-            refreshToken: tokens.refresh_token,
-            id: user.id
+}
+
+const createPlaylist = (user) => {
+    return rp.post(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
+        headers: {
+            'Authorization': `Bearer ${user.accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: {
+            'name': 'DiscoverWeeklyHistory',
+            'public': true
+        },
+        json: true
+    })
+}
+
+const getDiscoverWeeklySongs = (user) => {
+    return getPlaylistId(user, "Discover Weekly")
+    .then(id => getPlaylistTracks(user, id))
+    .then(res => {
+        console.log(`res: ${res}`)
+    })
+}
+
+const addSongsToPlaylist = (playlistId, songIds) => {
+
+}
+
+const getPlaylistTracks = (user, playlistId) => {
+    return rp.post(`https://api.spotify.com/v1/users/${user.id}/playlists/${playlistId}/tracks`, {
+        headers: {
+            'Authorization': `Bearer ${user.accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: {
+            'fields': 'items.track.id'
+        },
+        json: true
+    })
+}
+
+const getPlaylists = (user) => {
+    return rp('https://api.spotify.com/v1/me/playlists', {
+        headers: {
+            'Authorization': `Bearer ${user.accessToken}`
+        },
+        json: true
+    })
+    .then(res => {
+        console.log(res)
+    })
+    .catch(err => {
+        console.log(err)
+    })
+}
+
+const getPlaylistId = (user, playlistName) => {
+    return getPlaylists(user)
+    .then(res => {
+        const playlist = res.items.filter(item => item.name == playlistName)[0]
+        if (playlist) {
+            return playlist.id
+        } else {
+            return spotify.createPlaylist(user)
+            .then(res => res.id)
         }
     })
 }
 
 const getUserCreds = (authCode) => {
     return authorizeUser(authCode)
-    .then(tokens => getUserInfo(tokens))
-}
+    .then(tokens => {
+        return getUserInfo(tokens)
+        .then(user => {
 
-const storeUser = (tokens) => {
-    return getUser(tokens)
-    .then(user => {
-        const db = JSON.parse(fs.readFileSync('db.json', 'utf8'))
-        let userIdx = 0
-        let dbUser = db.users.filter((dbEntry, idx) => {
-            userIdx = idx
-            return dbEntry.userId == user.id
-        })[0]
-        if (!dbUser) {
-            db.users.push(user)
-        } else {
-            db.users[dbIdx] = dbUser
-        }
-        return user
+            return {
+                accessToken: tokens.access_token,
+                refreshToken: tokens.refresh_token,
+                id: user.id
+            }
+        })
     })
 }
 
+
 module.exports = {
     loginScreenUrl,
-    getUserCreds
+    getUserCreds,
+    getPlaylists,
+    createPlaylist,
+    getPlaylistId,
+    getDiscoverWeeklySongs,
+    addSongsToPlaylist
 }
