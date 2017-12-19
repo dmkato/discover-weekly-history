@@ -2,7 +2,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  background-color: #EFFFEF;
+  background: linear-gradient(to bottom right, white, limegreen) no-repeat fixed center
 }
 
 .Login {
@@ -20,7 +20,7 @@ body {
   margin-top: 15%;
 }
 
-.loginButton {
+.loginButton, .showPlaylist {
   margin-top: 20px;
   margin-bottom: 10px;
 }

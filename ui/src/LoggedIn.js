@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import logo from './logo.svg'
 import './Login.css'
-import { Panel } from 'react-bootstrap'
+import { Button, Panel } from 'react-bootstrap'
 
 class Login extends Component {
   render() {
@@ -9,7 +9,8 @@ class Login extends Component {
       <div className="Login">
         <Panel className="loginPanel">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="Login-title">You did it!</h1>
+          <h1 className="Login-title">Success! Checkout your new playlist!</h1>
+          <Button className='showPlaylist' href="#">Go To Spotify</Button>
         </Panel>
       </div>
     )
