@@ -53,10 +53,10 @@ const authorizeUser = (authCode) => {
     })
 }
 
-const getUserInfo = (tokens) => {
+const getUserInfo = (user) => {
     return rp('https://api.spotify.com/v1/me', {
         headers: {
-            'Authorization': `Bearer ${tokens.access_token}`,
+            'Authorization': `Bearer ${user.accessToken}`,
             'Content-Type': 'application/json'
         },
         json: true
@@ -87,8 +87,17 @@ const getPlaylistPage = (user, offset) => {
     })
 }
 
-const addSongsToPlaylist = (playlistId, songIds) => {
-
+const addSongsToPlaylist = (user, playlistId, trackUris) => {
+    return rp.post(`https://api.spotify.com/v1/users/${user.id}/playlists/${playlistId}/tracks`, {
+        headers: {
+            'Authorization': `Bearer ${user.accessToken}`
+        },
+        body: {
+            uris: trackUris,
+            position: 0
+        },
+        json: true
+    })
 }
 
 const getPlaylistTracks = (user, playlistId) => {
@@ -97,20 +106,20 @@ const getPlaylistTracks = (user, playlistId) => {
             "Authorization": `Bearer ${user.accessToken}`,
             "Content-Type": 'application/json'
         },
-        // body: {
-        //     "fields": "items.track.id"
-        // },
         json: true
     })
 }
 
 const getPlaylists = (user) => {
-    return rp(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
+    const options = {
+        uri: `https://api.spotify.com/v1/users/${user.id}/playlists`,
         headers: {
-            'Authorization': `Bearer ${user.accessToken}`
+            "Authorization": `Bearer ${user.accessToken}`,
+            "Content-Type": "application/json"
         },
         json: true
-    })
+    }
+    return rp(options)
 }
 
 const getPlaylistId = (user, playlistName) => {
@@ -124,7 +133,7 @@ const getPlaylistId = (user, playlistName) => {
 const getUserCreds = (authCode) => {
     return authorizeUser(authCode)
     .then(tokens => {
-        return getUserInfo(tokens)
+        return getUserInfo({accessToken: tokens.access_token})
         .then(user => {
             return {
                 accessToken: tokens.access_token,
@@ -132,6 +141,35 @@ const getUserCreds = (authCode) => {
                 id: user.id
             }
         })
+    })
+}
+
+const refreshUser = (user) => {
+    return rp.post('https://accounts.spotify.com/api/token', {
+        headers: {
+            'Authorization': 'Basic ' + (new Buffer(process.env.client_id + ':' + process.env.client_secret).toString('base64')),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        form: {
+            grant_type: "refresh_token",
+            refresh_token: user.refreshToken
+        },
+        json: true
+    })
+    .then((res) => {
+        return {access_token: res.access_token,
+                refresh_token: user.refresh_token,
+                id: user.id}
+    })
+}
+
+const updateCreds = (user) => {
+    return getUserInfo(user)
+    .then(res => {
+        return user
+    })
+    .catch(err => {
+        return refreshUser(user)
     })
 }
 
@@ -151,8 +189,10 @@ module.exports = {
     getPlaylists,
     getPlaylistId,
     getPlaylistPage,
+    getPlaylistTracks,
     createPlaylist,
     addSongsToPlaylist,
     getAllRequestPages,
-    search
+    search,
+    updateCreds
 }

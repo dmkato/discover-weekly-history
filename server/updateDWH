@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:.:/sbin
+cd /Users/danielkato/Code/discover-weekly-history/server
+node js/update.js >> updateLog

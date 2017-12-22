@@ -2,6 +2,14 @@ const rp = require('request-promise')
 const spotify = require('./spotify.js')
 const db = require('./db.js')
 
+const checkDWH = (user) => {
+    return spotify.getPlaylistId(user, "DiscoverWeeklyHistory")
+    .then(res => {
+        if (res) return true
+        else return false
+    })
+}
+
 const getDiscoverWeeklyHistoryPlaylist = (user) => {
     return spotify.getPlaylistId(user, "DiscoverWeeklyHistory")
     .then(playlistId => {
@@ -15,36 +23,28 @@ const getDiscoverWeeklyHistoryPlaylist = (user) => {
 }
 
 const getDiscoverWeeklyPlaylist = (user) => {
-    return spotify.getAllRequestPages(user, spotify.getPlaylistPage)
-    .then(pages => {
-        return Promise.all(pages)
-        .then(resList => {
-            resList.map((res) => {
-                targetPlaylistNames = res.items.map(item => item.name)
-                console.log(targetPlaylistNames)
-                // if (targetPlaylist) {
-                //     console.log('Its here')
-                //     return targetPlaylist.id
-                // }
-            })
-        })
-    })
+    return spotify.search(user, 'discover weekly', 'playlist')
+    .then(res => res.playlists.items[0].id)
 }
 
 const getDiscoverWeeklySongs = (user) => {
     return getDiscoverWeeklyPlaylist(user)
-    .then(id => {
-        console.log(id)
-    })
-    // .then(id => getPlaylistTracks(user, id))
+    .then(id => spotify.getPlaylistTracks(user, id))
+    .then(res => res.items.map(item => item.track.uri))
 }
 
 const createPlaylist = (user) => {
-    // db.storeUser(user)
-    getDiscoverWeeklyHistoryPlaylist(user)
-    .then(playlistId => {
-        getDiscoverWeeklySongs(user)
-        .then(songs => spotify.addSongsToPlaylist(songs, playlistId))
+    db.updateUser(user)
+    checkDWH(user)
+    .then(DWHExists => {
+        if (DWHExists) console.log('Already Created DiscoverWeeklyHistory')
+        else {
+            getDiscoverWeeklyHistoryPlaylist(user)
+            .then(playlistId => {
+                getDiscoverWeeklySongs(user)
+                .then(trackUris => spotify.addSongsToPlaylist(user, playlistId, trackUris))
+            })
+        }
     })
 }
 

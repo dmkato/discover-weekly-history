@@ -1,20 +1,35 @@
 const fs = require('fs')
 
 const loadDB = () => {
-    return JSON.parse(fs.readFileSync('db.json', 'utf8'))
+  return new Promise((resolve, reject) => {
+    fs.readFile('./db.json', 'utf8', (err, data) => {
+        resolve(JSON.parse(data))
+    })
+  })
 }
 
 const saveDB = (db) => {
-    fs.writeFileSync('db.json', JSON.stringify(db, null, '    '))
+    fs.writeFile('./db.json', JSON.stringify(db, null, '    '), 'utf8')
 }
 
-const storeUser = (user) => {
-    const db = loadDB()
-    db.users[user.id] = user
-    saveDB(db)
-    return user
+const updateUser = (user) => {
+    return loadDB()
+    .then(db => {
+        db.users[user.id] = user
+        saveDB(db)
+    })
+}
+
+const userExists = (user) => {
+    return loadDB()
+    .then(db => {
+        if (db.user[user.id]) return true
+        else return false
+    })
 }
 
 module.exports = {
-    storeUser
+    updateUser,
+    loadDB,
+    userExists
 }

@@ -17,6 +17,10 @@ app.get('/done', (req, res) => {
     })
 })
 
+app.get('/playlistUrl', (req, res) => {
+    // return playlist url
+})
+
 app.listen(3001, () => {
     console.log('Listening on 3001')
 })
