@@ -2,7 +2,7 @@
   "name": "ui",
   "version": "0.1.0",
   "dependencies": {
-    "bootstrap": "^3.3.7",
+    "bootstrap": "^3.4.1",
     "husky": "^0.14.3",
     "lint-staged": "^4.3.0",
     "prettier": "^1.8.0",
