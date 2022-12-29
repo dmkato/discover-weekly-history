@@ -17,7 +17,7 @@
     "querystring": "^0.2.0",
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
-    "webpack": "^3.8.1"
+    "webpack": "^5.75.0"
   },
   "devDependencies": {
     "webpack-dev-middleware": "^1.12.0",
